@@ -4,6 +4,7 @@ module Data.Set.Diet(
 , interval
 , intervalMin
 , intervalMax
+, mergeI
 , isPointed
 , mapI
 , Diet
@@ -23,17 +24,10 @@ module Data.Set.Diet(
 
 import Data.Ix
 import Data.Foldable(foldl', Foldable)
-import Data.Monoid
 
 data Interval a =
   Interval a a
   deriving (Eq, Ord)
-
-instance (Ord a, Monoid a) => Monoid (Interval a) where
-  mempty =
-    interval mempty mempty
-  Interval a1 a2 `mappend` Interval b1 b2 =
-    interval (a1 `mappend` b1) (a2 `mappend` b2)
 
 instance (Eq a, Show a) => Show (Interval a) where
   show (Interval a1 a2) =
@@ -68,6 +62,22 @@ intervalMax ::
   -> a
 intervalMax (Interval _ a) =
   a
+
+mergeI ::
+  (Ord a, Enum a) =>
+  Interval a
+  -> Interval a
+  -> Maybe (Interval a)
+mergeI (Interval a1 a2) (Interval aa1 aa2) =
+  if a1 <= aa2 && succ a2 >= aa1
+    then
+      Just $ Interval (min a1 aa1) (max a2 aa2)
+    else
+      if aa1 <= a2 && succ aa2 >= a1
+        then
+          Just $ Interval (min a1 aa1) (max a2 aa2)
+        else
+          Nothing
 
 isPointed ::
   Eq a =>

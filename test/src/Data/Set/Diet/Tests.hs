@@ -4,9 +4,11 @@ module Data.Set.Diet.Tests
   , test
   ) where
 
+import Prelude hiding (all)
 import Test.QuickCheck.Function
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Data.Foldable(all)
 import Data.List(nub, sort)
 import Data.Set.Diet
 import Data.Set.Diet.Data()
@@ -24,6 +26,9 @@ test =
         testProperty "Point has equal min and max" prop_point
       , testProperty "Point is pointed" prop_point_is_pointed
       , testProperty "Interval min is less than max" prop_interval_min_lt_max
+      , testProperty "mergeI commutes" prop_mergei_commutes
+      , testProperty "mergeI produces proper minimum" prop_mergei_min
+      , testProperty "mergeI produces proper maximum" prop_mergei_max
       , testProperty "mapI maintains identity" prop_mapi_id
       , testProperty "mapI maintains composition" prop_mapi_composes
       , testProperty "member inequivalent to notMember" prop_member_not_member
@@ -63,6 +68,27 @@ prop_interval_min_lt_max ::
 prop_interval_min_lt_max a1 a2 =
   let i = interval a1 a2
   in intervalMin i <= intervalMax i
+
+prop_mergei_min ::
+  Interval Int
+  -> Interval Int
+  -> Bool
+prop_mergei_min i1 i2 =
+  all (\i -> intervalMin i == min (intervalMin i1) (intervalMin i2)) (mergeI i1 i2)
+
+prop_mergei_max ::
+  Interval Int
+  -> Interval Int
+  -> Bool
+prop_mergei_max i1 i2 =
+  all (\i -> intervalMax i == max (intervalMax i1) (intervalMax i2)) (mergeI i1 i2)
+
+prop_mergei_commutes ::
+  Interval Int
+  -> Interval Int
+  -> Bool
+prop_mergei_commutes i1 i2 =
+  mergeI i1 i2 == mergeI i2 i1
 
 prop_mapi_id ::
   Interval Int
