@@ -1,3 +1,4 @@
+-- | Discrete Interval Encoding Tree described by Martin Erwig in /Diets for Fat Sets, January 1993/.
 module Data.Set.Diet(
   Interval
 , point
@@ -25,6 +26,7 @@ module Data.Set.Diet(
 import Data.Ix
 import Data.Foldable(foldl', Foldable)
 
+-- | An interval with discrete values between.
 data Interval a =
   Interval a a
   deriving (Eq, Ord)
@@ -33,12 +35,14 @@ instance (Eq a, Show a) => Show (Interval a) where
   show (Interval a1 a2) =
     '[' : show a1 ++ (if a1 == a2 then [] else "|" ++ show a2) ++ "]"
 
+-- | An interval with the same minimum and maximum.
 point ::
   a
   -> Interval a
 point a =
   Interval a a
 
+-- | Construct an interval ensuring that the minimum is less than or equal to maximum.
 interval ::
   Ord a =>
   a
@@ -51,18 +55,21 @@ interval a1 a2 =
     else
       Interval a2 a1
 
+-- | The minimum of the interval.
 intervalMin ::
   Interval a
   -> a
 intervalMin (Interval a _) =
   a
 
+-- | The maximum of the interval.
 intervalMax ::
   Interval a
   -> a
 intervalMax (Interval _ a) =
   a
 
+-- | Merge two intervals if they are overlapping or adjacent.
 mergeI ::
   (Ord a, Enum a) =>
   Interval a
@@ -79,6 +86,7 @@ mergeI (Interval a1 a2) (Interval aa1 aa2) =
         else
           Nothing
 
+-- | Returns whether or not the interval has the same minimum and maximum.
 isPointed ::
   Eq a =>
   Interval a
@@ -86,6 +94,7 @@ isPointed ::
 isPointed (Interval a1 a2) =
   a1 == a2
 
+-- | Map a function across the minimum and maximum of the interval.
 mapI ::
   Ord b =>
   (a -> b)
@@ -94,11 +103,11 @@ mapI ::
 mapI f (Interval a1 a2) =
   interval (f a1) (f a2)
 
+-- | A Discrete Interval Encoding Tree.
 data Diet a =
   Empty
   | Node (Diet a) (Interval a) (Diet a)
   deriving (Eq, Ord)
-
 
 instance (Eq a, Show a) => Show (Diet a) where
   showsPrec _ Empty =
@@ -106,6 +115,7 @@ instance (Eq a, Show a) => Show (Diet a) where
   showsPrec n (Node l i r) =
     showsPrec n l . shows i . showsPrec n r
 
+-- | Test for membership in the interval tree.
 member ::
   Ix a =>
   a
@@ -116,6 +126,7 @@ member _ Empty =
 member x (Node l (Interval a1 a2) r) =
   inRange (a1, a2) x || member x (if x < a1 then l else r)
 
+-- | Test for non-membership in the interval tree.
 notMember ::
   Ix a =>
   a
@@ -124,6 +135,7 @@ notMember ::
 notMember a =
   not . member a
 
+-- | Insert an element into the interval tree.
 insert ::
   (Ord a, Enum a) =>
   a
@@ -176,6 +188,7 @@ insert x d@(Node l i@(Interval a1 a2) r)
   | otherwise =
     d
 
+-- | Delete an element from the interval tree.
 delete ::
   (Ord a, Enum a) =>
   a
@@ -206,23 +219,27 @@ delete x (Node l i@(Interval a1 a2) r)
   | otherwise =
     Node l (Interval a1 (pred x)) (Node Empty (Interval (succ x) a2) r)
 
+-- | Construct an interval tree with no elements.
 empty ::
   Diet a
 empty =
   Empty
 
+-- | Construct an interval tree with a single element.
 single ::
   a
   -> Diet a
 single a =
   Node Empty (point a) Empty
 
+-- | Construct an interval tree with a single interval.
 singleI ::
   Interval a
   -> Diet a
 singleI a =
   Node Empty a Empty
 
+-- | Return the number of elements in the interval tree.
 size ::
   Ix a =>
   Diet a
@@ -232,6 +249,7 @@ size Empty =
 size (Node l (Interval a1 a2) r) =
   sum [size l, rangeSize (a1, a2), size r]
 
+-- | Fold on the interval tree.
 diet ::
   (b -> Interval a -> b -> b)
   -> b
@@ -242,6 +260,7 @@ diet _ z Empty =
 diet f z (Node l i r) =
   f (diet f z l) i (diet f z r)
 
+-- | Return all elements of the interval tree as a list.
 toList ::
   Ix a =>
   Diet a
@@ -249,6 +268,7 @@ toList ::
 toList =
   diet (\l (Interval a1 a2) r -> concat [l, range (a1, a2), r]) []
 
+-- | Construct an interval tree with the elements of the list.
 fromList ::
   (Foldable t, Ord a, Enum a) =>
   t a
@@ -256,6 +276,7 @@ fromList ::
 fromList =
   foldl' (flip insert) Empty
 
+-- | Map a function across the interval tree.
 mapD ::
   Ord b =>
   (a -> b)
