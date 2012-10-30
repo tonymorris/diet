@@ -5,16 +5,20 @@ module Data.Set.Diet(
 , intervalMin
 , intervalMax
 , isPointed
+, mapI
 , Diet
 , member
 , notMember
 , insert
 , delete
 , empty
+, single
+, singleI
 , size
 , diet
 , toList
 , fromList
+, mapD
 ) where
 
 import Data.Ix
@@ -34,6 +38,8 @@ instance (Ord a, Monoid a) => Monoid (Interval a) where
 instance Show a => Show (Interval a) where
   show (Interval a1 a2) =
     show [a1, a2]
+
+instance Foldable Interval where
 
 point ::
   a
@@ -71,6 +77,14 @@ isPointed ::
   -> Bool
 isPointed (Interval a1 a2) =
   a1 == a2
+
+mapI ::
+  Ord b =>
+  (a -> b)
+  -> Interval a
+  -> Interval b
+mapI f (Interval a1 a2) =
+  interval (f a1) (f a2)
 
 data Diet a =
   Empty
@@ -185,6 +199,18 @@ empty ::
 empty =
   Empty
 
+single ::
+  a
+  -> Diet a
+single a =
+  Node Empty (point a) Empty
+
+singleI ::
+  Interval a
+  -> Diet a
+singleI a =
+  Node Empty a Empty
+
 size ::
   Ix a =>
   Diet a
@@ -217,6 +243,16 @@ fromList ::
   -> Diet a
 fromList x =
   foldl' (flip insert) Empty x
+
+mapD ::
+  Ord b =>
+  (a -> b)
+  -> Diet a
+  -> Diet b
+mapD _ Empty =
+  Empty
+mapD f (Node l i r) =
+  Node (mapD f l) (mapI f i) (mapD f r)
 
 -- BEGIN not exported
 
