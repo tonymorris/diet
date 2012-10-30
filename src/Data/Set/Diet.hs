@@ -1,28 +1,35 @@
-module Data.Set.Diet where
+module Data.Set.Diet(
+  Interval
+, point
+, interval
+, intervalMin
+, intervalMax
+, isPointed
+, Diet
+, member
+, notMember
+, insert
+, delete
+, empty
+, size
+, diet
+, toList
+, fromList
+) where
 
-import Control.Applicative
 import Data.Ix
+import Data.Foldable(foldl', Foldable)
 import Data.Monoid
 
 data Interval a =
   Interval a a
   deriving (Eq, Ord)
 
-instance Functor Interval where
-  fmap f (Interval a1 a2) =
-    Interval (f a1) (f a2)
-
-instance Applicative Interval where
-  pure a =
-    Interval a a
-  Interval f1 f2 <*> Interval a1 a2 =
-    Interval (f1 a1) (f2 a2)
-
-instance Monoid a => Monoid (Interval a) where
+instance (Ord a, Monoid a) => Monoid (Interval a) where
   mempty =
-    Interval mempty mempty
+    interval mempty mempty
   Interval a1 a2 `mappend` Interval b1 b2 =
-    Interval (a1 `mappend` b1) (a2 `mappend` b2)
+    interval (a1 `mappend` b1) (a2 `mappend` b2)
 
 instance Show a => Show (Interval a) where
   show (Interval a1 a2) =
@@ -172,6 +179,44 @@ delete x (Node l i@(Interval a1 a2) r)
     Node l (Interval a1 (pred a2)) r
   | otherwise =
     Node l (Interval a1 (pred x)) (Node Empty (Interval (succ x) a2) r)
+
+empty ::
+  Diet a
+empty =
+  Empty
+
+size ::
+  Ix a =>
+  Diet a
+  -> Int
+size Empty =
+  0
+size (Node l (Interval a1 a2) r) =
+  sum [size l, rangeSize (a1, a2), size r]
+
+diet ::
+  (b -> Interval a -> b -> b)
+  -> b
+  -> Diet a
+  -> b
+diet _ z Empty =
+  z
+diet f z (Node l i r) =
+  f (diet f z l) i (diet f z r)
+
+toList ::
+  Ix a =>
+  Diet a
+  -> [a]
+toList =
+  diet (\l (Interval a1 a2) r -> concat [l, range (a1, a2), r]) []
+
+fromList ::
+  (Foldable t, Ord a, Enum a) =>
+  t a
+  -> Diet a
+fromList x =
+  foldl' (flip insert) Empty x
 
 -- BEGIN not exported
 
