@@ -1,5 +1,5 @@
 :set -isrc
-:l src/M.hs
+:l src/Data/Set/Diet.hs
 :m + Test.QuickCheck
 :set prompt ">> "
 :set -Wall
