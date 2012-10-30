@@ -185,7 +185,3 @@ prop_mapd_composes f g i =
   let f' = apply f
       g'= apply g
   in mapD (f' . g') i == mapD f' (mapD g' i)
-
-
-  -- mapD id
-  -- mapD compose
