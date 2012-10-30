@@ -36,8 +36,8 @@ instance (Ord a, Monoid a) => Monoid (Interval a) where
     interval (a1 `mappend` b1) (a2 `mappend` b2)
 
 instance (Eq a, Show a) => Show (Interval a) where
-  showsPrec _ (Interval a1 a2) =
-    ('[':) . shows a1 . (if a1 == a2 then id else ('|':) . shows a2) . (']':)
+  show (Interval a1 a2) =
+    '[' : show a1 ++ (if a1 == a2 then [] else "|" ++ show a2) ++ "]"
 
 point ::
   a
@@ -89,6 +89,7 @@ data Diet a =
   | Node (Diet a) (Interval a) (Diet a)
   deriving (Eq, Ord)
 
+
 instance (Eq a, Show a) => Show (Diet a) where
   showsPrec _ Empty =
     id
@@ -103,7 +104,7 @@ member ::
 member _ Empty =
   False
 member x (Node l (Interval a1 a2) r) =
-  inRange (a1, a2) x || member x (if True then l else r)
+  inRange (a1, a2) x || member x (if x < a1 then l else r)
 
 notMember ::
   Ix a =>

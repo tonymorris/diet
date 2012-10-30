@@ -7,6 +7,7 @@ module Data.Set.Diet.Tests
 import Test.QuickCheck.Function
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
+import Data.List(nub, sort)
 import Data.Set.Diet
 import Data.Set.Diet.Data()
 
@@ -20,18 +21,28 @@ test ::
 test =
     testGroup "Diet"
       [
-        testProperty "Point has equal min and max" prop_point1
+        testProperty "Point has equal min and max" prop_point
       , testProperty "Point is pointed" prop_point_is_pointed
       , testProperty "Interval min is less than max" prop_interval_min_lt_max
       , testProperty "Map maintains identity" prop_map_id
       , testProperty "Map maintains composition" prop_map_composes
       , testProperty "member inequivalent to notMember" prop_member_not_member
+      , testProperty "insert is a member" prop_insert_member
+      , testProperty "delete is not a member" prop_delete_not_member
+      , testProperty "empty has no members" prop_empty_no_members
+      , testProperty "single has member" prop_single_one_member1
+      , testProperty "single has one and only member" prop_single_one_member2
+      , testProperty "size is greater than zero" prop_size_positive
+      , testProperty "toList . fromList is inverse (with nub ignoring order)" prop_toList_fromList
+      , testProperty "toList length equal to size" prop_toList_size
+      , testProperty "toList has all members" prop_toList_members1
+      , testProperty "toList has all and only all members" prop_toList_members2
       ]
 
-prop_point1 ::
+prop_point ::
   Int
   -> Bool
-prop_point1 n =
+prop_point n =
   all (\f -> f (point n) == n) [intervalMin, intervalMax]
 
 prop_point_is_pointed ::
@@ -68,5 +79,74 @@ prop_member_not_member ::
   Int
   -> Diet Int
   -> Bool
-prop_member_not_member d x =
-  member d x /= notMember d x
+prop_member_not_member x d =
+  member x d /= notMember x d
+
+prop_insert_member ::
+  Int
+  -> Diet Int
+  -> Bool
+prop_insert_member x d =
+  member x (insert x d)
+
+prop_delete_not_member ::
+  Int
+  -> Diet Int
+  -> Bool
+prop_delete_not_member x d =
+  notMember x (delete x d)
+
+prop_empty_no_members ::
+  Int
+  -> Bool
+prop_empty_no_members x =
+  notMember x empty
+
+prop_single_one_member1 ::
+  Int
+  -> Bool
+prop_single_one_member1 x =
+  member x (single x)
+
+prop_single_one_member2 ::
+  Int
+  -> Int
+  -> Bool
+prop_single_one_member2 x n =
+  x == n || notMember n (single x)
+
+prop_size_positive ::
+  Diet Int
+  -> Bool
+prop_size_positive d =
+  size d >= 0
+
+prop_toList_fromList ::
+  [Int]
+  -> Bool
+prop_toList_fromList x =
+  sort (toList (fromList x)) == sort (nub x)
+
+prop_toList_size ::
+  Diet Int
+  -> Bool
+prop_toList_size x =
+  length (toList x) == size x
+
+prop_toList_members1 ::
+  Diet Int
+  -> Bool
+prop_toList_members1 x =
+  all (flip member x) (toList x)
+
+prop_toList_members2 ::
+  Diet Int
+  -> Int
+  -> Bool
+prop_toList_members2 x n =
+  elem n (toList x) || notMember n x
+
+
+  -- fromList -> members
+  -- mapD id
+  -- mapD compose
