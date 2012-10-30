@@ -116,7 +116,51 @@ insert ::
   -> Diet a
 insert x Empty =
   Node Empty (point x) Empty
-insert x d@(Node l i@(Interval a1 a2) r) =
+insert x d@(Node l i@(Interval a1 a2) r)
+  | x < a1 =
+    if succ x == a1
+      then
+        let joinLeft md@(Node Empty _ _) =
+              md
+            joinLeft (Node ml mi@(Interval ma1 ma2) mr) =
+              let (ml', Interval ml1 ml2) = splitMax ml
+              in if succ ml2 == ma1
+                   then
+                     Node ml' (Interval ml1 ma2) mr
+                   else
+                     Node ml mi mr
+            joinLeft Empty =
+              error "Broken invariant @ Data.Set.Diet#joinLeft"
+        in joinLeft (Node l (Interval x a2) r)
+      else
+        Node (insert x l) i r
+  | x > a2 =
+    if succ a2 == x
+      then
+        let splitMin (Node Empty mi mr) =
+              (mr, mi)
+            splitMin (Node ml mi mr) =
+              let (md, mi') = splitMin ml
+              in (Node md mi mr, mi')
+            splitMin Empty =
+              error "Broken invariant @ Data.Set.Diet#splitMin"
+            joinRight jd@(Node _ _ Empty) =
+              jd
+            joinRight (Node jl ji@(Interval ja1 ja2) jr) =
+              let (jr', Interval jr1 jr2) = splitMin jr
+              in if succ ja2 == jr1
+                   then
+                     Node jl (Interval ja1 jr2) jr'
+                   else
+                     Node jl ji jr
+            joinRight Empty =
+              error "Broken invariant @ Data.Set.Diet#joinRight"
+        in joinRight (Node l (Interval a1 x) r)
+      else
+        Node l i (insert x r)
+  | otherwise =
+    d
+{-
   if x < a1
     then
       if succ x == a1
@@ -163,6 +207,7 @@ insert x d@(Node l i@(Interval a1 a2) r) =
               Node l i (insert x r)
         else
           d
+          -}
 
 delete ::
   (Ord a, Enum a) =>
@@ -241,8 +286,8 @@ fromList ::
   (Foldable t, Ord a, Enum a) =>
   t a
   -> Diet a
-fromList x =
-  foldl' (flip insert) Empty x
+fromList =
+  foldl' (flip insert) Empty
 
 mapD ::
   Ord b =>
