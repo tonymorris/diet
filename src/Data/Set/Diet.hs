@@ -33,7 +33,7 @@ data Interval a =
 
 instance (Eq a, Show a) => Show (Interval a) where
   show (Interval a1 a2) =
-    '[' : show a1 ++ (if a1 == a2 then [] else "|" ++ show a2) ++ "]"
+    '[' : show a1 ++ (if a1 == a2 then [] else '|' : show a2) ++ "]"
 
 -- | An interval with the same minimum and maximum.
 point ::
@@ -76,15 +76,11 @@ mergeI ::
   -> Interval a
   -> Maybe (Interval a)
 mergeI (Interval a1 a2) (Interval aa1 aa2) =
-  if a1 <= aa2 && succ a2 >= aa1
+  if (a1 <= aa2 && succ a2 >= aa1) || (aa1 <= a2 && succ aa2 >= a1)
     then
       Just $ Interval (min a1 aa1) (max a2 aa2)
     else
-      if aa1 <= a2 && succ aa2 >= a1
-        then
-          Just $ Interval (min a1 aa1) (max a2 aa2)
-        else
-          Nothing
+      Nothing
 
 -- | Returns whether or not the interval has the same minimum and maximum.
 isPointed ::
