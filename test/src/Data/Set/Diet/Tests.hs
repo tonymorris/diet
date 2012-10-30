@@ -24,8 +24,8 @@ test =
         testProperty "Point has equal min and max" prop_point
       , testProperty "Point is pointed" prop_point_is_pointed
       , testProperty "Interval min is less than max" prop_interval_min_lt_max
-      , testProperty "Map maintains identity" prop_map_id
-      , testProperty "Map maintains composition" prop_map_composes
+      , testProperty "mapI maintains identity" prop_mapi_id
+      , testProperty "mapI maintains composition" prop_mapi_composes
       , testProperty "member inequivalent to notMember" prop_member_not_member
       , testProperty "insert is a member" prop_insert_member
       , testProperty "delete is not a member" prop_delete_not_member
@@ -37,7 +37,12 @@ test =
       , testProperty "toList length equal to size" prop_toList_size
       , testProperty "toList has all members" prop_toList_members1
       , testProperty "toList has all and only all members" prop_toList_members2
-      ]
+      , testProperty "fromList has all members" prop_fromList_members1
+      , testProperty "fromList has all and only all members" prop_fromList_members2
+      , testProperty "fromList length equal to size" prop_fromList_size
+      , testProperty "mapD maintains identity" prop_mapd_id
+      , testProperty "mapD maintains composition" prop_mapd_composes
+  ]
 
 prop_point ::
   Int
@@ -59,18 +64,18 @@ prop_interval_min_lt_max a1 a2 =
   let i = interval a1 a2
   in intervalMin i <= intervalMax i
 
-prop_map_id ::
+prop_mapi_id ::
   Interval Int
   -> Bool
-prop_map_id i =
+prop_mapi_id i =
   mapI id i == i
 
-prop_map_composes ::
+prop_mapi_composes ::
   Fun Int Int
   -> Fun Int Int
   -> Interval Int
   -> Bool
-prop_map_composes f g i =
+prop_mapi_composes f g i =
   let f' = apply f
       g'= apply g
   in mapI (f' . g') i == mapI f' (mapI g' i)
@@ -146,7 +151,41 @@ prop_toList_members2 ::
 prop_toList_members2 x n =
   elem n (toList x) || notMember n x
 
+prop_fromList_members1 ::
+  [Int]
+  -> Bool
+prop_fromList_members1 x =
+  all (\n -> member n (fromList x)) x
 
-  -- fromList -> members
+prop_fromList_members2 ::
+  [Int]
+  -> Int
+  -> Bool
+prop_fromList_members2 x n =
+  member n (fromList x) || notElem n x
+
+prop_fromList_size ::
+  [Int]
+  -> Bool
+prop_fromList_size x =
+  size (fromList x) == length (nub x)
+
+prop_mapd_id ::
+  Diet Int
+  -> Bool
+prop_mapd_id i =
+  mapD id i == i
+
+prop_mapd_composes ::
+  Fun Int Int
+  -> Fun Int Int
+  -> Diet Int
+  -> Bool
+prop_mapd_composes f g i =
+  let f' = apply f
+      g'= apply g
+  in mapD (f' . g') i == mapD f' (mapD g' i)
+
+
   -- mapD id
   -- mapD compose
