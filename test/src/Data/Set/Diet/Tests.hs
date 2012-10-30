@@ -1,4 +1,4 @@
-module M.Tests
+module Data.Set.Diet.Tests
   (
     main
   , test
@@ -6,14 +6,15 @@ module M.Tests
 
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2 (testProperty)
-import M
+import Data.Set.Diet
+import Data.Set.Diet.Data
 
-main :: 
+main ::
   IO ()
-main = 
+main =
   defaultMain [test]
 
-test :: 
+test ::
   Test
 test =
     testGroup "M"
@@ -25,5 +26,5 @@ prop_right_identity ::
   Int
   -> Bool
 prop_right_identity n =
-  n `add` 0 == n
+  n + 0 == n
 

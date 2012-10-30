@@ -1,23 +1,23 @@
-Name:               Haskell-Package-Test
+Name:               diet-test
 Version:            0.0.1
 Author:             Tony Morris <ʇǝu˙sıɹɹoɯʇ@ןןǝʞsɐɥ>
 Maintainer:         Tony Morris
 Copyright:          Tony Morris
-Synopsis:           A skeleton for testing haskell packages
+Synopsis:           Tests for the diet package
 Category:           Development
-Description:        A skeleton for testing haskell packages
-Homepage:           https://github.com/tonymorris/haskell-package
+Description:        Tests for the diet package
+Homepage:           https://github.com/tonymorris/diet
 Cabal-Version:      >= 1.6
 Build-Type:         Simple
 
 Source-Repository   head
   Type:             git
-  Location:         git@github.com:tonymorris/haskell-package.git
+  Location:         git@github.com:tonymorris/diet.git
 
 Flag                small_base
   Description:      Choose the new, split-up base package.
 
-Executable          package-test
+Executable          diet-test
   Hs-Source-Dirs:  
                     ../src src
 
@@ -25,7 +25,6 @@ Executable          package-test
                     Main.hs
 
   Ghc-Options:
-                    -O2
                     -Wall
                     -fhpc
                     -fwarn-tabs
@@ -39,6 +38,5 @@ Executable          package-test
 
   GHC-Options:      
                    -Wall
-                   -O2
                    -funbox-strict-fields
 
