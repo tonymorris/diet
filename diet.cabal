@@ -32,7 +32,3 @@ Library
   Exposed-Modules:
                     Data.Set.Diet
 
-  GHC-Options:      
-                   -Wall
-                   -funbox-strict-fields
-
